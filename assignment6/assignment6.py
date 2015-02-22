@@ -154,9 +154,6 @@ def gaussPyramid(image, levels):
   # WRITE YOUR CODE HERE.
   for i in range(levels):
     output.append(reduce(output[i]))
-
-  for i in range(len(output)):
-    cv2.imwrite("Image" + str(i) + ".jpg", image)
   return output
   # END OF FUNCTION.
 
@@ -192,9 +189,23 @@ def laplPyramid(gaussPyr):
   """
   output = []
   # WRITE YOUR CODE HERE.
+  for i in range(len(gaussPyr)):
+    if i == len(gaussPyr) - 1:
+      output.append(gaussPyr[i])
+    else:
+      original = gaussPyr[i]
+      expanded = expand(gaussPyr[i+1])
+      row_count = len(original)
+      col_count = len(original[0])
+      difference = np.zeros((row_count, col_count), dtype = np.float64)
+      
+      for row in range(row_count):
+        for col in range(col_count):
+          difference[row][col] = original[row][col] - expanded[row][col]
+      output.append(difference)
 
-
-
+  for i in range(len(output)):
+    cv2.imwrite("Image" + str(i) + ".jpg", output[i])
   return output
   # END OF FUNCTION.
 
@@ -268,5 +279,5 @@ def collapse(pyramid):
 
   # END OF FUNCTION.
 
-test_image = cv2.imread("fabio.jpg", cv2.IMREAD_GRAYSCALE)
-gaussPyramid(test_image,3)
+test_image = cv2.imread("newyork.jpg", cv2.IMREAD_GRAYSCALE)
+laplPyramid(gaussPyramid(test_image,3))
