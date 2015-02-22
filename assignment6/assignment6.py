@@ -203,9 +203,6 @@ def laplPyramid(gaussPyr):
         for col in range(col_count):
           difference[row][col] = original[row][col] - expanded[row][col]
       output.append(difference)
-
-  for i in range(len(output)):
-    cv2.imwrite("Image" + str(i) + ".jpg", output[i])
   return output
   # END OF FUNCTION.
 
@@ -296,5 +293,26 @@ def collapse(pyramid):
   return pyramid[0]
   # END OF FUNCTION.
 
-test_image = cv2.imread("newyork.jpg", cv2.IMREAD_GRAYSCALE)
-laplPyramid(gaussPyramid(test_image,3))
+
+'''
+******** TESTING ***************************************
+dog  = cv2.imread("dog.png", cv2.IMREAD_GRAYSCALE)
+cat  = cv2.imread("cat.png", cv2.IMREAD_GRAYSCALE)
+mask = cv2.imread("mask.png", cv2.IMREAD_GRAYSCALE)
+
+for row in range(len(mask)):
+  for col in range(len(mask[0])):
+    if mask[row][col] == 255:
+      mask[row][col] = 1
+    else:
+      mask[row][col] = 0
+dogPyramid   = laplPyramid(gaussPyramid(dog,3))
+catPyramid   = laplPyramid(gaussPyramid(cat,3))
+maskPyramid  = gaussPyramid(mask,3)
+
+resultPyramid = blend(dogPyramid,catPyramid,maskPyramid)
+final         = collapse(resultPyramid)
+
+cv2.imwrite("result.jpg", final)
+********************************************************
+'''
