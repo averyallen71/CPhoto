@@ -297,7 +297,7 @@ def collapse(pyramid):
 '''
 ******** TESTING ***************************************
 dog  = cv2.imread("dog.png", cv2.IMREAD_GRAYSCALE)
-cat  = cv2.imread("cat.png", cv2.IMREAD_GRAYSCALE)
+cat  = cv2.imread("lion.png", cv2.IMREAD_GRAYSCALE)
 mask = cv2.imread("mask.png", cv2.IMREAD_GRAYSCALE)
 
 for row in range(len(mask)):
@@ -314,5 +314,6 @@ resultPyramid = blend(dogPyramid,catPyramid,maskPyramid)
 final         = collapse(resultPyramid)
 
 cv2.imwrite("result.jpg", final)
+
 ********************************************************
 '''
