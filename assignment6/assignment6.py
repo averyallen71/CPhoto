@@ -248,7 +248,7 @@ def blend(laplPyrWhite, laplPyrBlack, gaussPyrMask):
     gauss = gaussPyrMask[i]
     row_count = len(white)
     col_count = len(white[0])
-    blend = np.zeros((row_count, col_count), dtype = np.float64)
+    blend = np.zeros((row_count, col_count))
     for row in range(row_count):
       for col in range(col_count):
         blend[row][col] = gauss[row][col] * white[row][col] + (1 - gauss[row][col]) * black[row][col]
@@ -280,17 +280,20 @@ def collapse(pyramid):
   6x8. If the next layer is of size 5x7, crop the expanded image to size 5x7.
   """
   # WRITE YOUR CODE HERE.
-  for i in range(len(pyramid)-1, 0, -1):
-    expanded = expand(pyramid[i])
-    layer = pyramid[i-1]
+  pyramidCopy = []
+  for each in pyramid:
+    pyramidCopy.append(np.copy(each))
+  for i in range(len(pyramidCopy)-1, 0, -1):
+    expanded = expand(pyramidCopy[i])
+    layer = pyramidCopy[i-1]
     row_count = len(layer)
     col_count = len(layer[0])
     updated = np.zeros((row_count, col_count), dtype = np.float64)
     for row in range(row_count):
       for col in range(col_count):
         updated[row][col] = layer[row][col] + expanded[row][col]
-    pyramid[i-1] = updated
-  return pyramid[0]
+    pyramidCopy[i-1] = updated
+  return pyramidCopy[0]
   # END OF FUNCTION.
 
 

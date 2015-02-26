@@ -76,6 +76,8 @@ def run_blend(black_image, white_image, mask):
   outimg[outimg > 255] = 255
   outimg = outimg.astype(np.uint8)
 
+  
+
   return lapl_pyr_black, lapl_pyr_white, gauss_pyr_black, gauss_pyr_white, \
       gauss_pyr_mask, outpyr, outimg
 
