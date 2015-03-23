@@ -1,5 +1,5 @@
 # ASSIGNMENT 7
-# Your Name
+# Robert Allen
 
 import numpy as np
 import scipy as sp
@@ -85,8 +85,14 @@ def findMatchesBetweenImages(image_1, image_2):
   image_2_desc = None
 
   # WRITE YOUR CODE HERE.
+  sift = SIFT()
+  image_1_kp, image_1_desc = sift.detectAndCompute(image_1,None)
+  image_2_kp, image_2_desc = sift.detectAndCompute(image_2,None)
 
-
+  bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+  matches = bf.match(image_1_desc,image_2_desc)
+  matches = sorted(matches, key = lambda x:x.distance)
+  matches = matches[:10]
 
 
 
