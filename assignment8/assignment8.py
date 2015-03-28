@@ -131,7 +131,8 @@ def findMatchesBetweenImages(image_1, image_2, num_matches):
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
     matches = bf.match(image_1_desc,image_2_desc)
     matches = sorted(matches, key = lambda x:x.distance)
-    matches = matches[:10]
+    if len(matches) >= num_matches:
+        matches = matches[:num_matches]
 
     return image_1_kp, image_2_kp, matches
   # END OF FUNCTION.
@@ -217,19 +218,17 @@ def blendImagePair(warped_image, image_2, point):
         for j in range(len(image_2[0])):
             im2_point = image_2[i][j]
             warped_point = warped_image[i + point[1], j + point[0]]
-
+            
             if warped_point[0] < 15 and warped_point[1] < 15 and warped_point[2] <15:
                 output_image[i + point[1], j + point[0]] = im2_point
             else:
-                weight = (len(image_2[0])/2.0 + j) / len(image_2[0])
+
+                weight =  float(j) / (len(image_2[0])/8.0)
                 if weight > 1:
                     weight = 1
                 counter = 1 - weight   
                 outputPoint = [float(im2_point[0]) * weight + float(warped_point[0]) * counter, float(im2_point[1]) * weight + float(warped_point[1]) * counter, float(im2_point[2]) * weight + float(warped_point[2]) * counter]
                 output_image[i + point[1], j + point[0]] = outputPoint
-    cv2.imwrite("warped.jpg", warped_image)
-    cv2.imwrite("image2.jpg",image_2)
-    cv2.imwrite("output.jpg",output_image)
     return output_image
     # END OF FUNCTION
 

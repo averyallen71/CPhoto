@@ -222,6 +222,7 @@ def test_warpImagePair():
     return True
 
 if __name__ == "__main__":
+    '''
     print "Performing unit test."
     if not test_getImageCorners():
         print "getImageCorners function failed. Halting testing."
@@ -240,7 +241,7 @@ if __name__ == "__main__":
         sys.exit()
     print "Unit test passed."
 
-  
+    '''
     sourcefolder = os.path.abspath(os.path.join(os.curdir, "images", "source"))
     outfolder = os.path.abspath(os.path.join(os.curdir, "images", "output"))
 
