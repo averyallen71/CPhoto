@@ -1,51 +1,9 @@
-# ASSIGNMENT 2
-# Robert Avery Allen
-# 902649920
-
 import cv2
 import numpy as np
 import scipy as sp
 
-""" Assignment 2 - Basic Image Input / Output / Simple Functionality
-
-This file has a number of functions that you need to fill out in order to
-complete the assignment. Please write the appropriate code, following the
-instructions on which functions you may or may not use.
-"""
-
-def numberOfPixels(image):
-    """ This function returns the number of pixels in a grayscale image.
-
-    Note: A grayscale image has one dimension as covered in the lectures. You
-    DO NOT have to account for a color image.
-
-    You may use any / all functions to obtain the number of pixels in the image.
-
-    Args:
-        image (numpy.ndarray): A grayscale image represented in a numpy array.
-
-    Returns:
-        int: The number of pixels in an image.
-    """
-    # WRITE YOUR CODE HERE.
-    count = 0
-    for i in range(len(image)):
-        count += len(image[i])
-    return count
-    # END OF FUNCTION.
-
-
 def convertToBlackAndWhite(image):
-    """ This function converts a grayscale image to black and white.
-
-    Assignment Instructions: Iterate through every pixel in the image. If the
-    pixel is strictly greater than 128, set the pixel to 255. Otherwise, set the
-    pixel to 0. You are essentially converting the input into a 1-bit image, as 
-    we discussed in lecture, it is a 2-color image.
-
-    You may NOT use any thresholding functions provided by OpenCV to do this.
-    All other functions are fair game.
-
+    """ 
     Args:
         image (numpy.ndarray): A grayscale image represented in a numpy array.
 
@@ -66,9 +24,9 @@ def convertToBlackAndWhite(image):
 
     # END OF FUNCTION.
 
-def colorToBinaryString(image):
+def colorToBinaryString(image, options):
     
-    bits = ""
+    bits = options
     rows = bin(len(image))[2:]
     cols = bin(len(image[0]))[2:]
     rows = rows.zfill(12)
@@ -84,11 +42,27 @@ def colorToBinaryString(image):
 
     return bits
 
+def greyscaleToBinaryString(image,options):
+
+    bits = options
+    rows = bin(len(image))[2:]
+    cols = bin(len(image[0]))[2:]
+    rows = rows.zfill(12)
+    cols = cols.zfill(12)
+    bits += rows
+    bits += cols
+
+    for i in range(len(image)):
+        for j in range(len(image[0])):
+            bits += bin(image[i][j])[2:].zfill(8)
+    return bits
+
 def recreateColorImage(bits):
-    rows = int(bits[0:12],2)
-    cols = int(bits[12:24],2)
+    
+    rows = int(bits[2:14],2)
+    cols = int(bits[14:26],2)
     blank_image = np.zeros((rows,cols,3), np.uint8)
-    bitIndex = 24
+    bitIndex = 26
     for i in range(rows):
         for j in range(cols):
 
@@ -113,8 +87,28 @@ def recreateColorImage(bits):
 
     return blank_image
 
-def encode(host,guest):
-    guestBits = colorToBinaryString(guest)
+def recreateGreyscaleImage(bits):
+    rows = int(bits[2:14],2)
+    cols = int(bits[14:26],2)
+    blank_image = np.zeros((rows,cols), np.uint8)
+    bitIndex = 26
+    for i in range(rows):
+        for j in range(cols):
+
+            intensityBin = bits[bitIndex:bitIndex+8]
+            if intensityBin:
+                intensity = int(intensityBin,2)
+                blank_image[i][j] = intensity
+                bitIndex+=8
+
+    return blank_image
+
+def encode(host,guest,options):
+    if options[0] == '1':
+        grey = cv2.cvtColor(guest, cv2.COLOR_RGB2GRAY)
+        guestBits =  greyscaleToBinaryString(grey,options)
+    else:
+        guestBits = colorToBinaryString(guest,options)
 
     rows = len(host)
     cols = len(host[0])
@@ -155,21 +149,31 @@ def encode(host,guest):
     
     return host
 
-
-def recoverBits(pic):
+def recoverBits(image):
     
-    rows = len(pic)
-    cols = len(pic[0])
+    rows = len(image)
+    cols = len(image[0])
     bits = ""
     for i in range(rows):
         for j in range(cols):
-            bits += bin(pic[i][j][0])[2:].zfill(8)[-2:]
-            bits += bin(pic[i][j][1])[2:].zfill(8)[-2:]
-            bits += bin(pic[i][j][2])[2:].zfill(8)[-2:]
+            bits += bin(image[i][j][0])[2:].zfill(8)[-2:]
+            bits += bin(image[i][j][1])[2:].zfill(8)[-2:]
+            bits += bin(image[i][j][2])[2:].zfill(8)[-2:]
     return bits
 
-
-def decode(pic):
-    bits = recoverBits(pic)
-    return(recreateColorImage(bits))
+def decode(image):
+    bits = recoverBits(image)
+    options = bits[:2]
+    if options[0] == '1':
+        return(recreateGreyscaleImage(bits))
+    else:
+        return(recreateColorImage(bits))
     
+def availableBitCount(image):
+    return len(image)*len(image[0])*6
+
+def bitsRequired(image,options):
+    bits = len(image)*len(image[0]) * 8 * 3
+    if options[0] == '1':
+        bits /= 3
+    return bits + len(options) + 24
