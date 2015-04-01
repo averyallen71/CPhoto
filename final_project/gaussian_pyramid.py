@@ -32,8 +32,11 @@ def reduce(image):
   row_count = len(image)
   col_count = len(image[0])
   kernel = generatingKernel(.4)
-  blurred = scipy.signal.convolve2d(image, kernel, 'same')
-  output = np.zeros((np.ceil(row_count/2.0), np.ceil(col_count/2.0)), dtype = np.float64)
+  red,green,blue = cv2.split(image)
+  redBlurred = scipy.signal.convolve2d(red, kernel, 'same')
+  greenBlurred = scipy.signal.convolve2d(green, kernel, 'same')
+  blueBlurred = scipy.signal.convolve2d(blue, kernel, 'same')
+  output = np.zeros((np.ceil(row_count/2.0), np.ceil(col_count/2.0),3), dtype = np.float64)
   output_row_count = len(output)
   output_col_count = len(output[0])  
 
@@ -41,13 +44,13 @@ def reduce(image):
   j = 0
   for row in range(0, row_count,2):
     for column in range(0, col_count,2):
-      pixel = blurred[row][column]
+      pixel = redBlurred[row][column],greenBlurred[row][column],blueBlurred[row][column]
       output[i][j] = pixel
       j += 1
       if j == output_col_count:
         j = 0
         i += 1
-  return output
+  return output.astype(int)
 
 
   # END OF FUNCTION.

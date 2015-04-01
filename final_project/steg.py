@@ -19,7 +19,6 @@ def convertToBlackAndWhite(image):
                 image[i][j] = 255
             else:
                 image[i][j] = 0
-    cv2.imwrite("blackwhite.jpg",image)
     return image
 
     # END OF FUNCTION.
