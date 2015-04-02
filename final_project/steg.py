@@ -58,10 +58,10 @@ def greyscaleToBinaryString(image,options):
 
 def recreateColorImage(bits):
     
-    rows = int(bits[2:14],2)
-    cols = int(bits[14:26],2)
+    rows = int(bits[5:17],2)
+    cols = int(bits[17:29],2)
     blank_image = np.zeros((rows,cols,3), np.uint8)
-    bitIndex = 26
+    bitIndex = 29
     for i in range(rows):
         for j in range(cols):
 
@@ -87,10 +87,10 @@ def recreateColorImage(bits):
     return blank_image
 
 def recreateGreyscaleImage(bits):
-    rows = int(bits[2:14],2)
-    cols = int(bits[14:26],2)
+    rows = int(bits[5:17],2)
+    cols = int(bits[17:29],2)
     blank_image = np.zeros((rows,cols), np.uint8)
-    bitIndex = 26
+    bitIndex = 29
     for i in range(rows):
         for j in range(cols):
 
@@ -102,8 +102,16 @@ def recreateGreyscaleImage(bits):
 
     return blank_image
 
+'''
+options string:
+                 (1) (2)(3)
+                XXX  X  X 
+    1 - bits to use
+    2 - greyscaleToBinaryStringscale
+    3 - placeholder
+'''
 def encode(host,guest,options):
-    if options[0] == '1':
+    if options[3] == '1':
         grey = cv2.cvtColor(guest, cv2.COLOR_RGB2GRAY)
         guestBits =  greyscaleToBinaryString(grey,options)
     else:
@@ -111,40 +119,60 @@ def encode(host,guest,options):
 
     rows = len(host)
     cols = len(host[0])
-    bitIndex = 0
+    bPerPix = int(options[:3],2)
+
+
+
+    #Amount of bits stored per pixel must be stored in a set position in first pixel
+    red = host[0][0][0]
+    green = host[0][0][1]
+    blue = host[0][0][2]
+
+    redBin = bin(red)[2:].zfill(8)[:7] + options[0]
+    greenBin = bin(green)[2:].zfill(8)[:7] + options[1]     
+    blueBin = bin(blue)[2:].zfill(8)[:7] + options[2]
+
+    host[0][0][0] = int(redBin,2)
+    host[0][0][1] = int(greenBin,2)
+    host[0][0][2] = int(blueBin,2)
+
+    bitIndex = 3
     for i in range(rows):
         for j in range(cols):
+            if i is 0 and j is 0:
+                continue
+            
             red = host[i][j][0]
             green = host[i][j][1]
             blue = host[i][j][2]
 
-            redBin = bin(red)[2:].zfill(8)[:6]
-            greenBin = bin(green)[2:].zfill(8)[:6]         
-            blueBin = bin(blue)[2:].zfill(8)[:6]
+            redBin = bin(red)[2:].zfill(8)[:8-bPerPix]
+            greenBin = bin(green)[2:].zfill(8)[:8-bPerPix]         
+            blueBin = bin(blue)[2:].zfill(8)[:8-bPerPix]
             
 
-            if bitIndex+2 < len(guestBits):
-                redBin += guestBits[bitIndex:bitIndex+2]
-                bitIndex +=2
+            if bitIndex+bPerPix < len(guestBits):
+                redBin += guestBits[bitIndex:bitIndex+bPerPix]
+                bitIndex +=bPerPix
             else:
                 break
             
-            if bitIndex+2 < len(guestBits):
-                greenBin += guestBits[bitIndex:bitIndex+2]
-                bitIndex +=2
+            if bitIndex+bPerPix < len(guestBits):
+                greenBin += guestBits[bitIndex:bitIndex+bPerPix]
+                bitIndex +=bPerPix
             else:
                 break
             
-            if bitIndex+2 < len(guestBits):
-                blueBin += guestBits[bitIndex:bitIndex+2]
-                bitIndex +=2
+            if bitIndex+bPerPix < len(guestBits):
+                blueBin += guestBits[bitIndex:bitIndex+bPerPix]
+                bitIndex +=bPerPix
             else:
                 break
 
             host[i][j][0] = int(redBin,2)
             host[i][j][1] = int(greenBin,2)
             host[i][j][2] = int(blueBin,2)
-
+            
     
     return host
 
@@ -152,27 +180,39 @@ def recoverBits(image):
     
     rows = len(image)
     cols = len(image[0])
+
+    #Get bit per pixels information stored in first pixel
     bits = ""
+    bits += bin(image[0][0][0])[2:].zfill(8)[-1:]
+    bits += bin(image[0][0][1])[2:].zfill(8)[-1:]
+    bits += bin(image[0][0][2])[2:].zfill(8)[-1:]
+
+    bPerPix = int(bits,2)
     for i in range(rows):
         for j in range(cols):
-            bits += bin(image[i][j][0])[2:].zfill(8)[-2:]
-            bits += bin(image[i][j][1])[2:].zfill(8)[-2:]
-            bits += bin(image[i][j][2])[2:].zfill(8)[-2:]
+            if i is 0 and j is 0:
+                continue
+            bits += bin(image[i][j][0])[2:].zfill(8)[-bPerPix:]
+            bits += bin(image[i][j][1])[2:].zfill(8)[-bPerPix:]
+            bits += bin(image[i][j][2])[2:].zfill(8)[-bPerPix:]
     return bits
 
 def decode(image):
     bits = recoverBits(image)
-    options = bits[:2]
-    if options[0] == '1':
+    options = bits[:5]
+    if options[3] == '1':
         return(recreateGreyscaleImage(bits))
     else:
         return(recreateColorImage(bits))
     
-def availableBitCount(image):
-    return len(image)*len(image[0])*6
+def availableBitCount(image,bitsPerChannel):
+    # the -1 and + 3 are because of predetermined bit location for storing 
+    # bits used per pixel
+    return (len(image)*len(image[0]) - 1)*3 * bitsPerChannel + 3
+
 
 def bitsRequired(image,options):
-    bits = len(image)*len(image[0]) * 8 * 3
-    if options[0] == '1':
+    bits = len(image)*len(image[0]) * 8 * 3 
+    if options[3] == '1':
         bits /= 3
-    return bits + len(options) + 24
+    return bits + len(options) + 24 
