@@ -4,7 +4,7 @@ import ttk
 import steg
 import gaussian_pyramid
 import tkFileDialog 
-
+import tkMessageBox
 
 class AppWindow(Frame):
 	def __init__(self,parent):
@@ -123,16 +123,22 @@ class AppWindow(Frame):
 
 		if fl != '':
 			self.hostImage = cv2.imread(fl,3)
-			self.hostName.set(fl)
-			self.updateSpaceAvailability()
+			if self.hostImage != None:
+				self.hostName.set(fl)
+				self.updateSpaceAvailability()
+			else:
+				tkMessageBox.showinfo("Error", "Pick a valid image file.")
 
 	def onOpenEncoded(self):
 		dlg = tkFileDialog.Open(filetypes = [('png','*.png')])
 		fl = dlg.show()
 
 		if fl != '':
-			self.decodeImageName.set(fl)
-			self.imageForDecode = cv2.imread(self.decodeImageName.get(),3)
+			self.imageForDecode = cv2.imread(fl,3)
+			if self.imageForDecode != None:
+				self.decodeImageName.set(fl)
+			else:
+				tkMessageBox.showinfo("Error", "Pick a valid image file.")
 
 	def onOpenGuest(self):
 		dlg = tkFileDialog.Open(filetypes = [('jpg', '*.jpg'),('gif', '*.gif'),('png','*.png'), ('All files', '*')])
@@ -141,9 +147,12 @@ class AppWindow(Frame):
 		if fl != '':
 			self.busy()
 			self.guestImage = cv2.imread(fl,3)
-			self.guestPyramid = gaussian_pyramid.gaussPyramid(self.guestImage,2)
-			self.guestName.set(fl)
-			self.updateSpaceAvailability()
+			if self.guestImage != None:
+				self.guestPyramid = gaussian_pyramid.gaussPyramid(self.guestImage,2)
+				self.guestName.set(fl)
+				self.updateSpaceAvailability()
+			else:
+				tkMessageBox.showinfo("Error", "Pick a valid image file.")
 			self.notbusy()
 	
 	def encodeImage(self):
@@ -175,8 +184,8 @@ class AppWindow(Frame):
 	def createOptionsString(self):
 		options = ''
 		bPerPix = int(self.bitScaleValue.get())
-		if bPerPix ==0:
-			bPerPix = 8
+		if bPerPix == 8:
+			bPerPix = 0
 		options += (bin(bPerPix)[2:]).zfill(3)
 		if self.greyscale.get() is '1':
 			options+='1'
@@ -202,8 +211,6 @@ def main():
 	appWindow = AppWindow(root)
 	root.geometry("650x300+300+300")
 	root.mainloop()
-
-    
 
 if __name__ == '__main__':
     main()  
