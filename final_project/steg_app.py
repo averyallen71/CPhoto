@@ -54,13 +54,11 @@ class AppWindow(Frame):
 		#Row 2 Elements
 		self.greyscaleCheck = ttk.Checkbutton(self.encodeTab,text= "Greyscale",variable = self.greyscale,command = self.updateSpaceAvailability)
 		self.greyscaleCheck.grid(column =0, row = 2,sticky=W)
-		self.placeHolderCheck = ttk.Checkbutton(self.encodeTab,text= "Placeholder",variable = self.placeHolder)
-		self.placeHolderCheck.grid(column =1, row = 2,sticky=W)
 
 		#Row 4 Elements
 		self.bitsLabel = Label(self.encodeTab,text = 'Bits to use:')
 		self.bitsLabel.grid(column=0,row=4,sticky=W+N)	
-		self.bitsScale = Scale(self.encodeTab,variable=self.bitScaleValue,orient=HORIZONTAL, length=300,from_=1, to=8, tickinterval=1,showvalue = 0,command =self.updateSpaceAvailability)
+		self.bitsScale = Scale(self.encodeTab,variable=self.bitScaleValue,orient=HORIZONTAL, length=300,from_=1, to=7, tickinterval=1,showvalue = 0,command =self.updateSpaceAvailability)
 		self.bitsScale.grid(column = 1, row = 4, columnspan = 1,sticky=W)
 		self.bitsRequired = Label(self.encodeTab,text = 'Bits Required:')
 		self.bitsRequired.grid(column=2,row=4,sticky=W+N)
@@ -160,7 +158,7 @@ class AppWindow(Frame):
 		if self.hostName.get() and self.guestName.get():
 			self.busy()
 			options = self.createOptionsString()
-			cv2.imwrite("encoded.png",encode(self.hostImage,self.guestPyramid[self.reductionScale.get()],options))
+			cv2.imwrite("encoded.png",encode(self.hostImage.copy(),self.guestPyramid[self.reductionScale.get()].copy(),options))
 			self.notbusy()
 	
 	def decodeImage(self):
@@ -184,6 +182,7 @@ class AppWindow(Frame):
 	def createOptionsString(self):
 		options = ''
 		bPerPix = int(self.bitScaleValue.get())
+		print bPerPix
 		if bPerPix == 8:
 			bPerPix = 0
 		options += (bin(bPerPix)[2:]).zfill(3)
